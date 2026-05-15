@@ -2,23 +2,7 @@
 
 A computational paleontology tool that uses reinforcement learning to generate **falsifiable behavioral hypotheses** about how *Ankylosaurus magniventris* survived in the Late Cretaceous Hell Creek formation (~66 Ma).
 
-This is not a game. Every physics parameter traces to a peer-reviewed source. The RL agent discovers behavior; the paleobiology constrains the physics within which that behavior emerges.
-
----
-
-## What this project answers
-
-- Under realistic biomechanical constraints, what survival strategy does an Ankylosaurus converge on?
-- Does the emergent strategy match trace fossil evidence (trackways, bite marks on osteoderms)?
-- When does the tail club get used — preemptively, reactively, or as a last resort?
-- Does the agent exploit terrain cover, consistent with a prey animal in a predator-rich environment?
-
----
-
-## The predator is real
-
-The T-rex adversary is the **pretrained Stage 3 PPO policy** from [mesozoic-labs](https://github.com/kuds/mesozoic-labs) (96.7% bite success rate). The ankylosaur is not fighting a scripted dummy — it is fighting a trained hunter. This matters for behavioral validity.
-
+T-Rex adversary is the **pretrained Stage 3 PPO policy** from [mesozoic-labs](https://github.com/kuds/mesozoic-labs) 
 ---
 
 ## Repository structure
@@ -53,9 +37,7 @@ ankylo_rl/
 
 ---
 
-## Physics grounding
-
-Every constant has a citation. Constants with no direct fossil basis are marked `# ASSUMPTION`.
+## Physics grounding, need to validate further
 
 | Parameter | Value | Source |
 |---|---|---|
@@ -68,25 +50,7 @@ Every constant has a citation. Constants with no direct fossil basis are marked 
 | T-rex max speed | 5.5 m/s | Hutchinson & Garcia 2002, Nature 415 |
 | Hell Creek vegetation | Cycad, fern, conifer, angiosperm | Fastovsky & Sheehan 2005 |
 
----
 
-## Model summary
-
-**MJCF:** `environments/ankylosaurus/assets/ankylosaurus.xml`
-
-| Region | DOF | Paleobiological basis |
-|---|---|---|
-| Neck (pitch + yaw) | 2 | Short stiff neck, nearly horizontal posture |
-| Head (pitch) | 1 | Ground-level low browsing |
-| Hip × 4 (abduct + flex + rotate) | 12 | Wide-gauge gait from acetabulum orientation |
-| Knee × 4 | 4 | Condyle fossil geometry |
-| Ankle × 4 | 4 | Simplified hinge |
-| Tail base (lat + dv) | 2 | Proximal caudal vertebrae flexibility |
-| Tail mid (lat + dv) | 2 | Stiffening toward distal end |
-| Tail handle (lat only) | 1 | **Ossified caudals — Arbour 2009** |
-| **Total actuated** | **28** | |
-
-Total model mass: ~4,660 kg (within 4,800–6,000 kg range).
 
 ---
 
@@ -158,38 +122,3 @@ Specifically, this project:
 
 The ankylosaurus environment follows the same structural conventions as the existing velociraptor, T-rex, and brachiosaurus environments in that repo.
 
-Please cite mesozoic-labs if you use this work:
-
-```bibtex
-@software{mesozoic_labs,
-  title   = {Mesozoic Labs: Dinosaur Locomotion via Reinforcement Learning},
-  author  = {Michael Kudlaty},
-  year    = {2025},
-  url     = {https://github.com/kuds/mesozoic-labs},
-  license = {MIT}
-}
-```
-
----
-
-## Key papers
-
-```
-[1] Arbour & Snively 2009 — Tail club FEA (primary damage model source)
-    https://pmc.ncbi.nlm.nih.gov/articles/PMC2726940/
-
-[2] Arbour & Currie 2013 — Body mass, morphology
-    https://doi.org/10.1371/journal.pone.0062421
-
-[3] Hutchinson & Garcia 2002 — T-rex speed upper bound
-    https://doi.org/10.1038/415001a
-
-[4] Fastovsky & Sheehan 2005 — Hell Creek Formation environment
-    https://doi.org/10.1130/1052-5173(2005)015<4:TETODI>2.0.CO;2
-```
-
----
-
-## License
-
-MIT
