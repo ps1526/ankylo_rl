@@ -1,0 +1,129 @@
+[general]
+name        = "ankylosaurus"
+description = "Ankylosaurus magniventris survival via RL — paleobiological simulation"
+version     = "1.0.0"
+
+# ============================================================
+# STAGE 1: BALANCE
+# ============================================================
+[stages.1]
+name              = "balance"
+timesteps         = 5_000_000
+success_metric    = "episode_length"
+success_threshold = 200
+
+[stages.1.reward_weights]
+w_survival       = 0.20   # Higher: just stay upright
+w_energy         = 0.00   # No food in stage 1
+w_loco_cost      = 0.02   # Light: encourage movement exploration
+w_club_hit       = 0.00   # No predator
+w_pred_prox      = 0.00
+w_bite_range     = 0.00
+w_fall           = 2.00   # High: falling is the failure mode
+w_joint_limits   = 0.20
+w_terrain_cover  = 0.00
+w_tail_ready     = 0.00
+
+[stages.1.ppo]
+learning_rate = 3e-4
+n_steps       = 2048
+batch_size    = 256
+n_epochs      = 10
+gamma         = 0.99
+gae_lambda    = 0.95
+clip_range    = 0.2
+ent_coef      = 0.02    # Higher: explore balance strategies
+net_arch      = [512, 512, 256]
+
+# ============================================================
+# STAGE 2: FORAGE
+# ============================================================
+[stages.2]
+name              = "forage"
+timesteps         = 7_000_000
+success_metric    = "final_energy"
+success_threshold = 0.40
+
+[stages.2.reward_weights]
+w_survival       = 0.10
+w_energy         = 3.00   # Primary: learn to eat
+w_loco_cost      = 0.05   # Realistic: movement costs energy
+w_club_hit       = 0.00
+w_pred_prox      = 0.00
+w_bite_range     = 0.00
+w_fall           = 1.00
+w_joint_limits   = 0.10
+w_terrain_cover  = 0.05   # Mild: vegetation near food clusters
+w_tail_ready     = 0.00
+
+[stages.2.ppo]
+learning_rate = 2e-4
+n_steps       = 2048
+batch_size    = 256
+n_epochs      = 10
+gamma         = 0.995   # Higher: long-horizon foraging
+gae_lambda    = 0.95
+clip_range    = 0.2
+ent_coef      = 0.01
+net_arch      = [512, 512, 256]
+
+# ============================================================
+# STAGE 3: SURVIVE
+# ============================================================
+[stages.3]
+name              = "survive"
+timesteps         = 10_000_000
+success_metric    = "survival_time"
+success_threshold = 3000   # Steps = 60s at 50 Hz
+
+[stages.3.reward_weights]
+w_survival       = 0.10
+w_energy         = 2.00   # Must still forage under threat
+w_loco_cost      = 0.05
+w_club_hit       = 10.00  # Big reward: successful deterrence
+w_pred_prox      = 0.50   # Graduated proximity penalty
+w_bite_range     = 2.00   # Spike: inside bite range is critical
+w_fall           = 1.00
+w_joint_limits   = 0.10
+w_terrain_cover  = 0.10   # Use terrain: prey-animal defensive behavior
+w_tail_ready     = 0.20   # Orient tail toward threat
+
+[stages.3.ppo]
+learning_rate = 1e-4    # Lower: fine-tune on top of Stage 2 policy
+n_steps       = 4096    # Longer rollouts: capture predator encounter cycles
+batch_size    = 512
+n_epochs      = 10
+gamma         = 0.995
+gae_lambda    = 0.95
+clip_range    = 0.15    # Tighter: conservative updates
+ent_coef      = 0.005
+net_arch      = [512, 512, 256]
+
+# ============================================================
+# ENVIRONMENT SETTINGS
+# ============================================================
+[environment]
+n_food_items           = 8
+food_respawn_radius_m  = 15.0
+terrain_size_m         = 30.0
+predator_speed_scale   = 1.0   # Set < 1.0 for debugging
+
+[environment.hell_creek]
+# Vegetation distribution: Fastovsky & Sheehan 2005 (Hell Creek Formation)
+vegetation_types        = ["cycad", "fern", "conifer", "angiosperm"]
+food_cluster_near_water = true
+water_zone_radius_m     = 8.0
+open_area_food_fraction = 0.4  # 40% in exposed open ground
+
+# ============================================================
+# TRAINING INFRASTRUCTURE
+# ============================================================
+[training]
+# Recommended for single GPU (L4 / A100)
+n_envs_default     = 8
+# For NRP cluster with MJX (64 parallel → ~4x speedup)
+n_envs_mjx         = 64
+tensorboard_log    = "environments/ankylosaurus/results/tb_logs"
+checkpoint_freq    = 50_000   # Steps between checkpoints (per single env)
+eval_freq          = 10_000
+eval_episodes      = 5

@@ -50,3 +50,6 @@ htmlcov/
 # MuJoCo
 *.mjb
 MUJOCO_LOG.TXT
+.dockerignore
+.gitattributes
+.gitignore
